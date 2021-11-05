@@ -50,7 +50,10 @@ async function startEc2Instance(label, githubRegistrationToken) {
   try {
     const result = await ec2.runInstances(params).promise();
     const ec2InstanceId = result.Instances[0].InstanceId;
-    core.info(`AWS EC2 instance ${ec2InstanceId} is started`);
+    const instanceDescribe = await ec2.describeInstances({ InstanceIds: [ec2InstanceId] }).promise();
+    core.info(
+      `AWS EC2 instance ${ec2InstanceId} is started (label=${label}, hostname=${instanceDescribe.Reservations[0].Instances[0].PrivateDnsName})`
+    );
     return ec2InstanceId;
   } catch (error) {
     core.error('AWS EC2 instance starting error');

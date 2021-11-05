@@ -67,7 +67,7 @@ function waitForRunnerRegisteredRecursive(label, resolve, reject, nextDelay, tim
         core.error('GitHub self-hosted runner registration error');
         reject(`Timeout exceeded: Your AWS EC2 instance was not able to register itself in GitHub as a new self-hosted runner.`);
       } else {
-        waitForRunnerRegisteredRecursive(label, resolve, reject, Math.min(nextDelay * 2, MAX_WAIT_TIME_BETWEEN_REGISTERED_CHECKS));
+        waitForRunnerRegisteredRecursive(label, resolve, reject, Math.min(nextDelay * 2, MAX_WAIT_TIME_BETWEEN_REGISTERED_CHECKS), timeoutAfter);
       }
     }
   }, nextDelay);
