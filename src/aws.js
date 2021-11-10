@@ -30,7 +30,7 @@ function buildUserDataScript(githubRegistrationToken, label) {
   }
 }
 
-async function startEc2Instance(label, githubRegistrationToken) {
+async function tryEc2Instance(label, githubRegistrationToken, subnetId) {
   const ec2 = new AWS.EC2();
 
   const userData = buildUserDataScript(githubRegistrationToken, label);
@@ -41,24 +41,36 @@ async function startEc2Instance(label, githubRegistrationToken) {
     MinCount: 1,
     MaxCount: 1,
     UserData: Buffer.from(userData.join('\n')).toString('base64'),
-    SubnetId: config.input.subnetId,
+    SubnetId: subnetId,
     SecurityGroupIds: [config.input.securityGroupId],
     IamInstanceProfile: { Name: config.input.iamRoleName },
     TagSpecifications: config.tagSpecifications,
   };
 
-  try {
-    const result = await ec2.runInstances(params).promise();
-    const ec2InstanceId = result.Instances[0].InstanceId;
-    const instanceDescribe = await ec2.describeInstances({ InstanceIds: [ec2InstanceId] }).promise();
-    core.info(
-      `AWS EC2 instance ${ec2InstanceId} is started (label=${label}, hostname=${instanceDescribe.Reservations[0].Instances[0].PrivateDnsName})`
-    );
-    return ec2InstanceId;
-  } catch (error) {
-    core.error('AWS EC2 instance starting error');
-    throw error;
+  const result = await ec2.runInstances(params).promise();
+  const ec2InstanceId = result.Instances[0].InstanceId;
+  const instanceDescribe = await ec2.describeInstances({ InstanceIds: [ec2InstanceId] }).promise();
+  core.info(
+    `AWS EC2 instance ${ec2InstanceId} is started (label=${label}, hostname=${instanceDescribe.Reservations[0].Instances[0].PrivateDnsName})`
+  );
+  return ec2InstanceId;
+}
+
+async function startEc2Instance(label, githubRegistrationToken) {
+  const subnets = config.input.subnetId
+    .split(',')
+    // shuffle subnets using the schwartzian transform algorithm
+    .map((value) => ({ value, sort: Math.random() }))
+    .sort((a, b) => a.sort - b.sort)
+    .map(({ value }) => value);
+  for (const subnet of subnets) {
+    try {
+      return await tryEc2Instance(label, githubRegistrationToken, subnet);
+    } catch (e) {
+      core.warning(`Failed to launch instance in subnet ${subnet}.`, e);
+    }
   }
+  core.error(`Exhausted subnets to try to launch EC2 instance, permanent failure of instance launch.`);
 }
 
 async function terminateEc2Instance() {
