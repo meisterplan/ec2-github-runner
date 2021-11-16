@@ -3,7 +3,7 @@ const github = require('@actions/github');
 const _ = require('lodash');
 const config = require('./config');
 
-const INITIAL_WAIT_TIME_BEFORE_CHECKS = 4 * 1000; // 5 seconds
+const INITIAL_WAIT_TIME_BEFORE_CHECKS = 4 * 1000; // 4 seconds
 const MAX_WAIT_TIME_BEFORE_FAIL = 15 * 60 * 1000; // 15 minutes
 const MAX_WAIT_TIME_BETWEEN_REGISTERED_CHECKS = 60 * 1000; // 60 seconds
 
