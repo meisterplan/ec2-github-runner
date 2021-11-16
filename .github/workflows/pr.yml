@@ -10,6 +10,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+        with:
+          fetch-depth: '0'
       - name: Cache dependencies
         uses: actions/cache@v2
         with:
@@ -19,3 +21,11 @@ jobs:
         run: npm install
       - name: Run linter
         run: npm run lint
+      - name: Package
+        run: npm run package
+      - name: Commit
+        run: |
+          git config --global user.name "GitHub Actions"
+          git add dist/
+          git commit -m "Update dist" || echo "No changes to commit"
+          git push -f origin HEAD:refs/heads/artifact/pr-${{github.event.number}}

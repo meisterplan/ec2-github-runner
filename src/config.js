@@ -19,7 +19,10 @@ class Config {
     const tags = JSON.parse(core.getInput('aws-resource-tags'));
     this.tagSpecifications = null;
     if (tags.length > 0) {
-      this.tagSpecifications = [{ResourceType: 'instance', Tags: tags}, {ResourceType: 'volume', Tags: tags}];
+      this.tagSpecifications = [
+        { ResourceType: 'instance', Tags: tags },
+        { ResourceType: 'volume', Tags: tags },
+      ];
     }
 
     // the values of github.context.repo.owner and github.context.repo.repo are taken from
@@ -47,7 +50,7 @@ class Config {
         throw new Error(`Not all the required inputs are provided for the 'start' mode`);
       }
     } else if (this.input.mode === 'stop') {
-      if (!this.input.label || !this.input.ec2InstanceId) {
+      if (!this.input.ec2InstanceId) {
         throw new Error(`Not all the required inputs are provided for the 'stop' mode`);
       }
     } else {
