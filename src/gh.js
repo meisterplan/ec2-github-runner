@@ -7,13 +7,16 @@ const INITIAL_WAIT_TIME_BEFORE_CHECKS = 4 * 1000; // 4 seconds
 const MAX_WAIT_TIME_BEFORE_FAIL = 15 * 60 * 1000; // 15 minutes
 const MAX_WAIT_TIME_BETWEEN_REGISTERED_CHECKS = 60 * 1000; // 60 seconds
 
+// Init logging
+const octokit = github.getOctokit(config.input.githubToken);
+octokit.log.info = console.info;
+octokit.log.debug = console.debug;
+
 // use the unique label to find the runner
 // as we don't have the runner's id, it's not possible to get it in any other way
 async function getRunner(runnerId) {
-  const octokit = github.getOctokit(config.input.githubToken);
-
   try {
-    const runners = await octokit.paginate('GET /repos/{owner}/{repo}/actions/runners', config.githubContext);
+    const runners = await octokit.paginate('GET /repos/{owner}/{repo}/actions/runners?per_page=100', config.githubContext);
     const foundRunners = _.filter(runners, (runner) => runner.name === runnerId);
     return foundRunners.length > 0 ? foundRunners[0] : null;
   } catch (error) {
@@ -23,8 +26,6 @@ async function getRunner(runnerId) {
 
 // get GitHub Registration Token for registering a self-hosted runner
 async function getRegistrationToken() {
-  const octokit = github.getOctokit(config.input.githubToken);
-
   try {
     const response = await octokit.request('POST /repos/{owner}/{repo}/actions/runners/registration-token', config.githubContext);
     core.info('GitHub Registration Token is received');
@@ -37,8 +38,6 @@ async function getRegistrationToken() {
 
 async function removeRunner() {
   const runner = await getRunner(config.input.ec2InstanceId ? config.input.ec2InstanceId : config.input.label);
-  const octokit = github.getOctokit(config.input.githubToken);
-
   // skip the runner removal process if the runner is not found
   if (!runner) {
     core.info(`GitHub self-hosted runner with id ${config.input.label} is not found, so the removal is skipped`);
