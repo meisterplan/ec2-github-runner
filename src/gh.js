@@ -7,6 +7,11 @@ const INITIAL_WAIT_TIME_BEFORE_CHECKS = 4 * 1000; // 4 seconds
 const MAX_WAIT_TIME_BEFORE_FAIL = 15 * 60 * 1000; // 15 minutes
 const MAX_WAIT_TIME_BETWEEN_REGISTERED_CHECKS = 60 * 1000; // 60 seconds
 
+// Init logging
+const octokit = github.getOctokit(config.input.githubToken);
+octokit.log.info = console.info;
+octokit.log.debug = console.debug;
+
 // use the unique label to find the runner
 // as we don't have the runner's id, it's not possible to get it in any other way
 async function getRunner(runnerId) {
