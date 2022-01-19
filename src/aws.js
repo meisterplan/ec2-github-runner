@@ -71,7 +71,9 @@ async function startEc2Instance(label, githubRegistrationToken) {
     try {
       return await tryEc2Instance(label, githubRegistrationToken, subnet);
     } catch (e) {
-      core.warning(`Failed to launch instance in subnet ${subnet}: ${e.toString()}`);
+      const waitFor = Math.round(Math.random() * 20 * 1000);
+      core.warning(`Failed to launch instance in subnet ${subnet}: ${e.toString()}, waiting ${waitFor} ms little until retry.`);
+      await new Promise((resolve) => setTimeout(() => resolve(), waitFor));
     }
   }
   core.error(`Exhausted subnets to try to launch EC2 instance, permanent failure of instance launch.`);
